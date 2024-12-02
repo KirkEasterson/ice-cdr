@@ -19,6 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: "write"
+    outputs:
+      upload_url: ${{steps.create_release.outputs.upload_url}}
     steps:
       - name: "Get current date"
         run: echo "TODAY=$(date +'%Y_%m_%d')" >> $GITHUB_ENV
@@ -71,7 +73,7 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ github.token }}"
         with:
-          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          upload_url: "${{ needs.create_release.outputs.upload_url }}"
           asset_path: "${{ steps.artifact_path.outputs.artifact_path }}"
           asset_name: "ice-cdr${{ (startsWith(matrix.runtime, 'win') && '.exe') || '' }}"
           asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
