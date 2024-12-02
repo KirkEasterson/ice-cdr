@@ -47,6 +47,8 @@ jobs:
     needs: create_release
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: "write"
     strategy:
       matrix:
         runtime: ["linux-x64", "osx-arm64", "osx-x64", "win-x64"]
