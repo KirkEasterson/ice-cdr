@@ -60,7 +60,7 @@ jobs:
         id: "filename"
 
       - name: "Set artifact path"
-        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{steps.filename.outputs.filename}} >> $GITHUB_OUTPUT"
+        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/ >> $GITHUB_OUTPUT"
         id: "artifact_path"
 
       - name: Build project binary
@@ -70,7 +70,7 @@ jobs:
         uses: "actions/upload-artifact@v4"
         with:
           name: "binary_${{matrix.runtime}}"
-          path: "${{ steps.artifact_path.outputs.artifact_path }}"
+          path: "${{steps.artifact_path.outputs.artifact_path}}${{steps.filename.outputs.filename}}"
 
       - name: "Upload artifacts to release"
         uses: "actions/upload-release-asset@v1" # NOTE: this action is deprecated
