@@ -13,22 +13,11 @@ jobs:
       - name: Build project
         run: dotnet build
 
-  publish:
+  create_release:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    strategy:
-      matrix:
-        runtime: ["linux-x64", "osx-arm64", "osx-x64", "win-x64"]
     steps:
-      - uses: actions/checkout@v4
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
-      - name: Build project binary
-        run: dotnet publish --runtime ${{matrix.runtime}}
-
       - name: "Get current date"
         run: echo "TODAY=$(date +'%Y_%m_%d')" >> $GITHUB_ENV
 
@@ -36,7 +25,7 @@ jobs:
         run: echo "SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
       - name: "Set release version"
-        run: echo "version=${{env.TODAY}}_${{matrix.runtime}}_${{env.SHORT_SHA}} >> $GITHUB_OUTPUT"
+        run: echo "version=${{env.TODAY}}_${{env.SHORT_SHA}} >> $GITHUB_OUTPUT"
         id: "version"
 
       - name: "Create release"
@@ -48,7 +37,32 @@ jobs:
           draft: false
           prerelease: false
           release_name: "${{ steps.version.outputs.version }}"
-          tag_name: "${{env.SHA_SHORT}}_${{matrix.runtime}}"
+          tag_name: "${{env.SHA_SHORT}}"
+
+  publish:
+    needs: create_release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runtime: ["linux-x64", "osx-arm64", "osx-x64", "win-x64"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+
+      - name: "Set artifact path"
+        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}} >> $GITHUB_OUTPUT"
+        id: "artifact_path"
+
+      - name: Build project binary
+        run: dotnet publish --runtime ${{matrix.runtime}}
+
+      - name: "Upload artifacts to action"
+        uses: "actions/upload-artifact@v4"
+        with:
+          name: "binary_${{matrix.runtime}}"
+          path: "${{ steps.artifact_path.outputs.artifact_path }}"
 
       - name: "Upload artifacts to release"
         uses: "actions/upload-release-asset@v1" # NOTE: this action is deprecated
@@ -56,6 +70,6 @@ jobs:
           GITHUB_TOKEN: "${{ github.token }}"
         with:
           upload_url: "${{ steps.create_release.outputs.upload_url }}"
-          asset_path: "./bin/Release/net8.0/${{matrix.runtime}}/publish/ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}}"
+          asset_path: "${{ steps.artifact_path.outputs.artifact_path }}"
           asset_name: "ice-cdr${{ (startsWith(matrix.runtime, 'win') && '.exe') || '' }}"
           asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
