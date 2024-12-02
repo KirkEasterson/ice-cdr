@@ -23,13 +23,13 @@ jobs:
       upload_url: ${{steps.create_release.outputs.upload_url}}
     steps:
       - name: "Get current date"
-        run: echo "TODAY=$(date +'%Y_%m_%d')" >> $GITHUB_ENV
+        run: echo "TODAY=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
 
       - name: "Get short SHA"
         run: echo "SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
       - name: "Set release version"
-        run: echo "VERSION=${{env.TODAY}}-${{env.SHA_SHORT}} >> $GITHUB_ENV"
+        run: echo "version=${{env.TODAY}}_${{env.SHA_SHORT}} >> $GITHUB_OUTPUT"
         id: "version"
 
       - name: "Create release"
@@ -40,7 +40,7 @@ jobs:
         with:
           draft: false
           prerelease: false
-          release_name: "${{env.VERSION}}"
+          release_name: "${{steps.version.outputs.version}}"
           tag_name: "${{env.SHA_SHORT}}"
 
   publish:
