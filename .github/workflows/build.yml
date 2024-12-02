@@ -75,5 +75,5 @@ jobs:
         with:
           upload_url: "${{ needs.create_release.outputs.upload_url }}"
           asset_path: "${{ steps.artifact_path.outputs.artifact_path }}"
-          asset_name: "${{ steps.filename.outputs.filename }}"
+          asset_name: "${{matrix.runtime}}_${{ steps.filename.outputs.filename }}"
           asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
