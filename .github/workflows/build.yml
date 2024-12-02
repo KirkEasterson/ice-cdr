@@ -56,10 +56,10 @@ jobs:
         uses: actions/setup-dotnet@v3
 
       - name: "Set filename"
-        run: echo "FILENAME=ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}} >> $GITHUB_OUTPUT"
+        run: echo "FILENAME=ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}} >> $GITHUB_ENV"
 
       - name: "Set artifact path"
-        run: echo "ARTIFACT_PATH=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{env.FILENAME}} >> $GITHUB_OUTPUT"
+        run: echo "ARTIFACT_PATH=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{env.FILENAME}} >> $GITHUB_ENV"
 
       - name: Build project binary
         run: dotnet publish --runtime ${{matrix.runtime}}
