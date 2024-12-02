@@ -41,9 +41,15 @@ class Program
         }
 
         var topCaller = callersWithMostCalls.First();
-        Console.WriteLine($"Total Duration of Calls to {topCaller.Caller}: {topCaller.TotalDurationIncoming} seconds");
+        var totalDurationToTopCaller = callDetailRecords
+            .Where(cdr => cdr.Receiver == topCaller.Caller)
+            .Sum(cdr => cdr.Duration);
+        Console.WriteLine($"Total Duration of Calls to {topCaller.Caller}: {totalDurationToTopCaller} seconds");
 
-        var uniqueNumbers = callDetailRecords.SelectMany(cdr => new[] { cdr.Caller, cdr.Receiver }).Distinct().Count();
+        var uniqueNumbers = callDetailRecords
+            .SelectMany(cdr => new[] { cdr.Caller, cdr.Receiver })
+            .Distinct()
+            .Count();
         Console.WriteLine($"Total Unique Phone Numbers: {uniqueNumbers}");
     }
 
