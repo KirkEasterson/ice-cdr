@@ -10,28 +10,24 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
-      - name: Display dotnet version
-        run: dotnet --version
-      - name: Upload dotnet test results
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact
-          path: ice-cdr
-        if: ${{ always() }}
+      - name: Build project
+        run: dotnet build
 
-  release:
+  publish:
     needs: build
     if: github.ref == 'refs/heads/main'
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     permissions:
-      contents: "write"
+      contents: write
+    strategy:
+      matrix:
+        runtime: ["linux-x64", "osx-arm64", "osx-x64", "win-x64"]
     steps:
-      - name: "Download artifact"
-        id: "download-artifact"
-        uses: "actions/download-artifact@v4"
-        with:
-          name: "ice-cdr"
-          path: "./"
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+      - name: Build project binary
+        run: dotnet publish --runtime ${{matrix.runtime}}
 
       - name: "Get current date"
         run: echo "TODAY=$(date +'%Y_%m_%d')" >> $GITHUB_ENV
@@ -40,7 +36,7 @@ jobs:
         run: echo "SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
 
       - name: "Set release version"
-        run: echo "version=${{env.TODAY}}_${{env.SHORT_SHA}} >> $GITHUB_OUTPUT"
+        run: echo "version=${{env.TODAY}}_${{matrix.runtime}}_${{env.SHORT_SHA}} >> $GITHUB_OUTPUT"
         id: "version"
 
       - name: "Create release"
@@ -55,11 +51,11 @@ jobs:
           tag_name: "${{env.SHA_SHORT}}"
 
       - name: "Upload artifacts to release"
-        uses: "actions/upload-release-asset@v1"
+        uses: "actions/upload-release-asset@v1" # NOTE: this action is deprecated
         env:
           GITHUB_TOKEN: "${{ github.token }}"
         with:
           upload_url: "${{ steps.create_release.outputs.upload_url }}"
-          asset_path: "./ice-cdr"
-          asset_name: "ice-cdr"
+          asset_path: "./bin/Debug/net8.0/${{matrix.runtime}}/publish/ice-cdr${{ (startWith(${{matrix.runtime}}, 'win') && '.exe') || '' }}"
+          asset_name: "ice-cdr${{ (startWith(${{matrix.runtime}}, 'win') && '.exe') || '' }}"
           asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
