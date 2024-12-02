@@ -1,0 +1,65 @@
+---
+name: build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+      - name: Display dotnet version
+        run: dotnet --version
+      - name: Upload dotnet test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: ice-cdr
+        if: ${{ always() }}
+
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/master'
+    runs-on: "ubuntu-latest"
+    permissions:
+      contents: "write"
+    steps:
+      - name: "Download artifact"
+        id: "download-artifact"
+        uses: "actions/download-artifact@v4"
+        with:
+          name: "ice-cdr"
+          path: "./"
+
+      - name: "Get current date"
+        run: echo "TODAY=$(date +'%Y_%m_%d')" >> $GITHUB_ENV
+
+      - name: "Get short SHA"
+        run: echo "SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+
+      - name: "Set release version"
+        run: echo "version=${{env.TODAY}}_${{env.SHORT_SHA}} >> $GITHUB_OUTPUT"
+        id: "version"
+
+      - name: "Create release"
+        uses: "actions/create-release@v1"
+        id: "create_release"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        with:
+          draft: false
+          prerelease: false
+          release_name: "${{ steps.version.outputs.version }}"
+          tag_name: "${{env.SHA_SHORT}}"
+
+      - name: "Upload artifacts to release"
+        uses: "actions/upload-release-asset@v1"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: "./ice-cdr"
+          asset_name: "ice-cdr"
+          asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
