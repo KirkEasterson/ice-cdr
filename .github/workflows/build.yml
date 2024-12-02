@@ -56,10 +56,12 @@ jobs:
         uses: actions/setup-dotnet@v3
 
       - name: "Set filename"
-        run: echo "FILENAME=ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}} >> $GITHUB_ENV"
+        run: echo "filename=ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}} >> $GITHUB_OUTPUT"
+        id: filename
 
       - name: "Set artifact path"
-        run: echo "ARTIFACT_PATH=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{env.FILENAME}} >> $GITHUB_ENV"
+        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{steps.filename.outputs.filename}} >> $GITHUB_OUTPUT"
+        id: artifact_path
 
       - name: Build project binary
         run: dotnet publish --runtime ${{matrix.runtime}}
@@ -70,6 +72,6 @@ jobs:
           GITHUB_TOKEN: "${{ github.token }}"
         with:
           upload_url: "${{ needs.create_release.outputs.upload_url }}"
-          asset_path: "${{ env.ARTIFACT_PATH }}"
-          asset_name: "${{ env.FILENAME }}"
+          asset_path: "${{ steps.artifact_path.outputs.artifact_path }}"
+          asset_name: "${{ steps.filename.outputs.filename }}"
           asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
