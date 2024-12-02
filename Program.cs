@@ -39,9 +39,12 @@ class Program
         {
             Console.WriteLine($"{caller.Caller}: {caller.CallCount} calls");
         }
-        
+
         var topCaller = callersWithMostCalls.First();
         Console.WriteLine($"Total Duration of Calls to {topCaller.Caller}: {topCaller.TotalDurationIncoming} seconds");
+
+        var uniqueNumbers = callDetailRecords.SelectMany(cdr => new[] { cdr.Caller, cdr.Receiver }).Distinct().Count();
+        Console.WriteLine($"Total Unique Phone Numbers: {uniqueNumbers}");
     }
 
     static Dictionary<string, string> ParseArguments(string[] args)
