@@ -48,7 +48,7 @@ jobs:
           draft: false
           prerelease: false
           release_name: "${{ steps.version.outputs.version }}"
-          tag_name: "${{env.SHA_SHORT}}"
+          tag_name: "${{env.SHA_SHORT}}_${{matrix.version}}"
 
       - name: "Upload artifacts to release"
         uses: "actions/upload-release-asset@v1" # NOTE: this action is deprecated
