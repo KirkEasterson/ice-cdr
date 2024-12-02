@@ -21,18 +21,18 @@ class Program
             input = DefaultData();
         }
 
-        Console.WriteLine(input);
         var callDetailRecords = JsonSerializer.Deserialize<List<CallDetailRecord>>(input);
 
+        var callersWithMostCalls = callDetailRecords
+            .GroupBy(cdr => cdr.Caller)
+            .OrderByDescending(group => group.Count())
+            .Select(group => new { Caller = group.Key, CallCount = group.Count() })
+            .ToList();
 
-        Console.WriteLine(callDetailRecords);
-        foreach (var callDetailRecord in callDetailRecords)
+        Console.WriteLine("Top 3 most active callers:");
+        foreach (var caller in callersWithMostCalls)
         {
-            Console.WriteLine("================");
-            Console.WriteLine(callDetailRecord.Caller);
-            Console.WriteLine(callDetailRecord.Receiver);
-            Console.WriteLine(callDetailRecord.StartTime);
-            Console.WriteLine(callDetailRecord.Duration);
+            Console.WriteLine($"{caller.Caller}: {caller.CallCount} calls");
         }
     }
 
