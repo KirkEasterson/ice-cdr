@@ -60,17 +60,11 @@ jobs:
         id: "filename"
 
       - name: "Set artifact path"
-        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/ >> $GITHUB_OUTPUT"
+        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{steps.filename.outputs.filename}} >> $GITHUB_OUTPUT"
         id: "artifact_path"
 
       - name: Build project binary
         run: dotnet publish --runtime ${{matrix.runtime}}
-
-      - name: "Upload artifacts to action"
-        uses: "actions/upload-artifact@v4"
-        with:
-          name: "binary_${{matrix.runtime}}"
-          path: "${{steps.artifact_path.outputs.artifact_path}}${{steps.filename.outputs.filename}}"
 
       - name: "Upload artifacts to release"
         uses: "actions/upload-release-asset@v1" # NOTE: this action is deprecated
@@ -79,5 +73,5 @@ jobs:
         with:
           upload_url: "${{ needs.create_release.outputs.upload_url }}"
           asset_path: "${{ steps.artifact_path.outputs.artifact_path }}"
-          asset_name: "ice-cdr${{ (startsWith(matrix.runtime, 'win') && '.exe') || '' }}"
+          asset_name: "${{ steps.filename.outputs.filename }}"
           asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
