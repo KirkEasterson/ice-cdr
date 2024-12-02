@@ -26,14 +26,22 @@ class Program
         var callersWithMostCalls = callDetailRecords
             .GroupBy(cdr => cdr.Caller)
             .OrderByDescending(group => group.Count())
-            .Select(group => new { Caller = group.Key, CallCount = group.Count() })
+            .Select(group => new
+            {
+                Caller = group.Key,
+                CallCount = group.Count(),
+                TotalDurationIncoming = group.Sum(cdr => cdr.Duration)
+            })
             .ToList();
 
         Console.WriteLine("Top 3 most active callers:");
-        foreach (var caller in callersWithMostCalls)
+        foreach (var caller in callersWithMostCalls.Take(3))
         {
             Console.WriteLine($"{caller.Caller}: {caller.CallCount} calls");
         }
+        
+        var topCaller = callersWithMostCalls.First();
+        Console.WriteLine($"Total Duration of Calls to {topCaller.Caller}: {topCaller.TotalDurationIncoming} seconds");
     }
 
     static Dictionary<string, string> ParseArguments(string[] args)
