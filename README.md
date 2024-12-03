@@ -32,6 +32,16 @@ dotnet run
 dotnet build
 ```
 
+### Create a single binary
+
+The resulting binary will be located at `./bin/Release/net8.0/<RUNTIME>/ice-cdr[.exe]`
+
+*NOTE*: this has only been tested on linux.
+
+```
+dotnet publish
+```
+
 ## TODO:
 - [ ] separate the logic into classes
     - [ ] create an interface with `Run` and `LogResults` methods
