@@ -37,4 +37,5 @@ dotnet build
     - [ ] create an interface with `Run` and `LogResults` methods
 - [ ] add error handling
 - [ ] add graceful program exits
+- [ ] add tests
 - [ ] add a docker container for consistent environments between devs
