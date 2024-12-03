@@ -40,7 +40,7 @@ class Program
         var topCaller = topCallers.First();
         var totalTopCallerDuration = TotalDurationToCallerQuery.Execute(callDetailRecords, topCaller.Number);
         Console.WriteLine($"Total Duration of Calls to {topCaller.Number}: {totalTopCallerDuration} seconds");
-        
+
         var totalUniqueNumbers = TotalUniqueNumbersQuery.Execute(callDetailRecords);
         Console.WriteLine($"Total Unique Phone Numbers: {totalUniqueNumbers}");
     }
@@ -55,10 +55,6 @@ class Program
             if (parts.Length == 2)
             {
                 arguments[parts[0]] = parts[1];
-            }
-            else
-            {
-                arguments[arg] = null;
             }
         }
 
