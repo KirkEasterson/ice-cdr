@@ -12,4 +12,11 @@ public class CallerInfo
     public string Number { get; set; }
     public int CallCount { get; set; }
     public int TotalDurationIncoming { get; set; }
+
+    public CallerInfo(string number, int callCount, int totalDurationIncoming)
+    {
+        Number = number;
+        CallCount = callCount;
+        TotalDurationIncoming = totalDurationIncoming;
+    }
 }

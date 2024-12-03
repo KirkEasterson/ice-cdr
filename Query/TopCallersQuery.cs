@@ -9,12 +9,11 @@ public class CallersWithMostCallsQuery
         return callDetailRecords
             .GroupBy(cdr => cdr.Caller)
             .OrderByDescending(group => group.Count())
-            .Select(group => new CallerInfo
-            {
-                Number = group.Key,
-                CallCount = group.Count(),
-                TotalDurationIncoming = group.Sum(cdr => cdr.Duration)
-            })
+            .Select(group => new CallerInfo(
+                group.Key,
+                group.Count(),
+                group.Sum(cdr => cdr.Duration)
+            ))
             .ToList();
     }
 }
