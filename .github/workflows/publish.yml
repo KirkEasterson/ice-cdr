@@ -1,0 +1,71 @@
+---
+name: publish
+
+on:
+  push:
+    paths: ["*.cs*"]
+
+jobs:
+  create_release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "write"
+    outputs:
+      upload_url: ${{steps.create_release.outputs.upload_url}}
+    steps:
+      - name: "Get current date"
+        run: echo "TODAY=$(date +'%Y-%m-%d')" >> $GITHUB_ENV
+
+      - name: "Get short SHA"
+        run: echo "SHA_SHORT=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
+
+      - name: "Set release version"
+        run: echo "version=${{env.TODAY}}_${{env.SHA_SHORT}}" >> "$GITHUB_OUTPUT"
+        id: "version"
+
+      - name: "Create release"
+        uses: "actions/create-release@v1"
+        id: "create_release"
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        with:
+          draft: false
+          prerelease: false
+          release_name: "${{steps.version.outputs.version}}"
+          tag_name: "${{env.SHA_SHORT}}"
+
+  publish:
+    needs: create_release
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: "write"
+    strategy:
+      matrix:
+        runtime: ["linux-x64", "osx-arm64", "osx-x64", "win-x64"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v3
+
+      - name: "Set filename"
+        run: echo "filename=ice-cdr${{(startsWith(matrix.runtime, 'win') && '.exe') || ''}}" >> "$GITHUB_OUTPUT"
+        id: filename
+
+      - name: "Set artifact path"
+        run: echo "artifact_path=./bin/Release/net8.0/${{matrix.runtime}}/publish/${{steps.filename.outputs.filename}}" >> "$GITHUB_OUTPUT"
+        id: artifact_path
+
+      - name: Build project binary
+        run: dotnet publish --runtime ${{matrix.runtime}}
+
+      - name: "Upload artifacts to release"
+        uses: "actions/upload-release-asset@v1" # NOTE: this action is deprecated
+        env:
+          GITHUB_TOKEN: "${{ github.token }}"
+        with:
+          upload_url: "${{ needs.create_release.outputs.upload_url }}"
+          asset_path: "${{ steps.artifact_path.outputs.artifact_path }}"
+          asset_name: "${{matrix.runtime}}_${{ steps.filename.outputs.filename }}"
+          asset_content_type: "application/octet-stream" # TODO: verify that this is the correct type
