@@ -13,3 +13,8 @@ dotnet run
 ```
 dotnet build
 ```
+
+## TODO:
+- [] separate the logic into classes
+    - [] create an interface with `Run` and `LogResults` methods
+- [] add a docker container for consistent environments between devs
