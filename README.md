@@ -16,7 +16,7 @@ ice-cdr
 
 An optional file can be supplied. Error handling hasn't been implemented yet so the program will crash if the JSON isn't formatted correctly.
 ```
-ice-crd --input=${HOME}/cdrs.json
+ice-cdr --input=${HOME}/cdrs.json
 ```
 
 
