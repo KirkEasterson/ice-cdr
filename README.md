@@ -6,7 +6,7 @@ There are binaries for each commit available in releases. Download the latest re
 
 View usage
 ```
-ice-crd --help
+ice-cdr --help
 ```
 
 Run the program as usual to see the expected results.
