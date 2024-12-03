@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+using ice_cdr.Query;
+using ice_cdr.Types;
 
 class Program
 {
@@ -23,34 +25,24 @@ class Program
 
         var callDetailRecords = JsonSerializer.Deserialize<List<CallDetailRecord>>(input);
 
-        var callersWithMostCalls = callDetailRecords
-            .GroupBy(cdr => cdr.Caller)
-            .OrderByDescending(group => group.Count())
-            .Select(group => new
-            {
-                Caller = group.Key,
-                CallCount = group.Count(),
-                TotalDurationIncoming = group.Sum(cdr => cdr.Duration)
-            })
-            .ToList();
-
-        Console.WriteLine("Top 3 most active callers:");
-        foreach (var caller in callersWithMostCalls.Take(3))
+        if (callDetailRecords == null)
         {
-            Console.WriteLine($"{caller.Caller}: {caller.CallCount} calls");
+            return;
         }
 
-        var topCaller = callersWithMostCalls.First();
-        var totalDurationToTopCaller = callDetailRecords
-            .Where(cdr => cdr.Receiver == topCaller.Caller)
-            .Sum(cdr => cdr.Duration);
-        Console.WriteLine($"Total Duration of Calls to {topCaller.Caller}: {totalDurationToTopCaller} seconds");
+        var topCallers = CallersWithMostCallsQuery.Execute(callDetailRecords);
+        Console.WriteLine("Top 3 most active callers:");
+        foreach (var caller in topCallers.Take(3))
+        {
+            Console.WriteLine($"{caller.Number}: {caller.CallCount} calls");
+        }
 
-        var uniqueNumbers = callDetailRecords
-            .SelectMany(cdr => new[] { cdr.Caller, cdr.Receiver })
-            .Distinct()
-            .Count();
-        Console.WriteLine($"Total Unique Phone Numbers: {uniqueNumbers}");
+        var topCaller = topCallers.First();
+        var totalTopCallerDuration = TotalDurationToCallerQuery.Execute(callDetailRecords, topCaller.Number);
+        Console.WriteLine($"Total Duration of Calls to {topCaller.Number}: {totalTopCallerDuration} seconds");
+        
+        var totalUniqueNumbers = TotalUniqueNumbersQuery.Execute(callDetailRecords);
+        Console.WriteLine($"Total Unique Phone Numbers: {totalUniqueNumbers}");
     }
 
     static Dictionary<string, string> ParseArguments(string[] args)
